@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlastRadius Sim | Kubernetes Failure & Resilience Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-sky: #edf7ed;
+            --sky-gradient: linear-gradient(180deg, #e0f2fe 0%, #f0fdf4 100%);
+            --wood-brown: #7c5c43;
+            --wood-dark: #523b2b;
+            --wood-light: #f5efe6;
+            --leaf-green: #86efac;
+            --leaf-dark: #166534;
+            --pastel-red: #fca5a5;
+            --pastel-red-dark: #991b1b;
+            --pastel-orange: #fdba74;
+            --pastel-yellow: #fef08a;
+            --pastel-blue: #bae6fd;
+            --pastel-purple: #ddd6fe;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --text-muted: #64748b;
+            --border-color: #d1c2b4;
+            --shadow-color: rgba(124, 92, 67, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Fredoka', 'Quicksand', sans-serif;
+        }
+
+        body {
+            background: var(--sky-gradient);
+            color: var(--text-main);
+            padding: 24px;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1520px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* HEADER SECTION */
+        .app-header {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border: 3px solid var(--wood-brown);
+            border-radius: 24px;
+            padding: 18px 28px;
+            box-shadow: 0 8px 0 var(--wood-brown), 0 12px 20px var(--shadow-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-title-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .app-icon {
+            width: 54px;
+            height: 54px;
+            background: #fef3c7;
+            border: 3px solid var(--wood-brown);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 0 var(--wood-brown);
+        }
+
+        .header-text h1 {
+            font-size: 1.85rem;
+            color: var(--wood-dark);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-text p {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .team-badge {
+            background: #e0e7ff;
+            color: #3730a3;
+            font-size: 0.78rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+            border: 1.5px solid #a5b4fc;
+            font-weight: 600;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stat-pill {
+            background: #fff;
+            border: 2px solid var(--wood-brown);
+            padding: 6px 14px;
+            border-radius: 16px;
+            box-shadow: 0 3px 0 var(--wood-brown);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .stat-pill span.num {
+            color: #0284c7;
+            font-size: 1.05rem;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* BUTTONS */
+        .btn {
+            background: #ffffff;
+            border: 2.5px solid var(--wood-brown);
+            color: var(--wood-dark);
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--wood-brown);
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 var(--wood-brown);
+            background: #fffbeb;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--wood-brown);
+        }
+
+        .btn-primary {
+            background: #86efac;
+            color: #14532d;
+        }
+
+        .btn-danger {
+            background: #fca5a5;
+            color: #7f1d1d;
+        }
+
+        .btn-select {
+            padding: 8px 12px;
+            font-family: inherit;
+        }
+
+        /* TOP ARCHITECTURE BANNER (MEOMI HERO CARD) */
+        .hero-banner {
+            background: #ffffff;
+            border: 3px solid var(--wood-brown);
+            border-radius: 24px;
+            padding: 20px 28px;
+            box-shadow: 0 8px 0 var(--wood-brown), 0 12px 20px var(--shadow-color);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #e0f2fe 100%);
+        }
+
+        .hero-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .hero-title {
+            font-size: 1.15rem;
+            color: var(--wood-dark);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .hero-grid { grid-template-columns: 1fr; }
+        }
+
+        .arch-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid var(--wood-brown);
+            border-radius: 18px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            box-shadow: 0 4px 0 rgba(124, 92, 67, 0.15);
+            position: relative;
+        }
+
+        .arch-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            border: 2px solid var(--wood-brown);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+            background: var(--pastel-yellow);
+        }
+
+        .arch-info h4 {
+            font-size: 0.95rem;
+            color: var(--wood-dark);
+            margin-bottom: 4px;
+        }
+
+        .arch-info p {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.35;
+        }
+
+        /* MAIN WORKSPACE GRID */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        @media (max-width: 1200px) {
+            .workspace-grid { grid-template-columns: 1fr; }
+        }
+
+        /* LEFT: GRAPH CANVAS CARD */
+        .graph-card {
+            background: #ffffff;
+            border: 3px solid var(--wood-brown);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 8px 0 var(--wood-brown), 0 12px 20px var(--shadow-color);
+            position: relative;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .graph-controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px dashed #e2e8f0;
+        }
+
+        .instruction-tag {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1.5px solid #fde047;
+            padding: 5px 12px;
+            border-radius: 14px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* GRAPH LAYOUT COLUMNS */
+        .dag-viewport {
+            position: relative;
+            flex: 1;
+            background: #f8fafc;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            padding: 24px 16px;
+            overflow-x: auto;
+            min-height: 520px;
+        }
+
+        .column-headers {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 5;
+        }
+
+        .col-header-pill {
+            background: #f1f5f9;
+            border: 1.5px solid #cbd5e1;
+            padding: 6px 8px;
+            border-radius: 12px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dag-columns-container {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            position: relative;
+            z-index: 4;
+            min-height: 440px;
+        }
+
+        .dag-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* POD NODES (MEOMI STYLE) */
+        .pod-node {
+            background: #ffffff;
+            border: 2.5px solid var(--wood-brown);
+            border-radius: 16px;
+            padding: 10px 12px;
+            width: 100%;
+            max-width: 135px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--wood-brown);
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            user-select: none;
+            z-index: 10;
+        }
+
+        .pod-node:hover {
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 7px 0 var(--wood-brown);
+            border-color: #451a03;
+        }
+
+        .pod-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .pod-code {
+            font-size: 0.68rem;
+            font-weight: 800;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 1px 5px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .pod-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 6px #22c55e;
+        }
+
+        .pod-face {
+            font-size: 1.1rem;
+            margin: 2px 0;
+            display: block;
+        }
+
+        .pod-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--wood-dark);
+            line-height: 1.15;
+            word-break: break-word;
+        }
+
+        .pod-role-sub {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* POD STATES */
+        .pod-node.failed-root {
+            background: #fca5a5 !important;
+            border-color: #991b1b !important;
+            animation: nodePulse 0.9s infinite alternate;
+        }
+
+        .pod-node.failed-root .pod-status-dot {
+            background: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+        }
+
+        .pod-node.blast-affected {
+            background: #fed7aa !important;
+            border-color: #c2410c !important;
+        }
+
+        .pod-node.blast-affected .pod-status-dot {
+            background: #f97316;
+            box-shadow: 0 0 8px #f97316;
+        }
+
+        .pod-node.remediated {
+            background: #dcfce7 !important;
+            border-color: #15803d !important;
+        }
+
+        @keyframes nodePulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.06); }
+        }
+
+        /* PLAY CASCADE — momentary flash as the failure reaches each pod */
+        .pod-node.cascade-flash {
+            animation: cascadeFlash 0.6s ease-out;
+        }
+
+        @keyframes cascadeFlash {
+            0% { filter: brightness(2.1) saturate(1.4); transform: scale(1.12); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.35), 0 4px 0 var(--wood-brown); }
+            100% { filter: brightness(1) saturate(1); transform: scale(1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .pod-node.cascade-flash { animation: none; }
+        }
+
+        .hop-bar.hop-active {
+            filter: brightness(1.35);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+        }
+
+        /* SVG VINES / CONNECTIONS */
+        #vines-svg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* RIGHT: SIDE PANEL COMMAND CENTER */
+        .command-card {
+            background: #ffffff;
+            border: 3px solid var(--wood-brown);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 8px 0 var(--wood-brown), 0 12px 20px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* TABS HEADER */
+        .tab-buttons {
+            display: flex;
+            background: #f1f5f9;
+            border: 2px solid var(--wood-brown);
+            border-radius: 16px;
+            padding: 3px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--wood-dark);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            border: 1.5px solid var(--wood-brown);
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* METRICS CHALKBOARD */
+        .metrics-chalkboard {
+            background: #1e293b;
+            color: #f8fafc;
+            border-radius: 18px;
+            padding: 16px;
+            border: 2.5px solid var(--wood-brown);
+            box-shadow: 0 4px 0 var(--wood-brown);
+        }
+
+        .chalk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed #475569;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.88rem;
+        }
+
+        .metric-val {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .metric-val.high { color: #f87171; }
+        .metric-val.med { color: #fb923c; }
+        .metric-val.safe { color: #4ade80; }
+
+        /* FAILED PODS PILLS */
+        .failed-badges-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .failed-pill {
+            background: #ef4444;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* MITIGATION LIST */
+        .mitigation-box {
+            background: #f8fafc;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px;
+        }
+
+        .mitigation-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--wood-dark);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mitigation-item {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .mitigation-item:hover {
+            border-color: var(--wood-brown);
+        }
+
+        .mitigation-text p {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--wood-dark);
+        }
+
+        .mitigation-text span {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .btn-apply {
+            background: #3b82f6;
+            color: #ffffff;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 0 #1d4ed8;
+            flex-shrink: 0;
+        }
+
+        .btn-apply.applied {
+            background: #22c55e;
+            box-shadow: 0 2px 0 #15803d;
+        }
+
+        /* FIELD DIAGNOSTIC CHECKLIST */
+        .symptom-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        .symptom-row:hover {
+            border-color: var(--wood-brown);
+            background: #fffbeb;
+        }
+
+        .symptom-row input[type="checkbox"] {
+            margin-top: 2px;
+            width: 15px;
+            height: 15px;
+            accent-color: #16a34a;
+            flex-shrink: 0;
+        }
+
+        .symptom-row span {
+            font-size: 0.78rem;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .diagnosis-pod-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .diagnosis-pod-line:last-child { border-bottom: none; }
+
+        .diagnosis-score-bar {
+            flex: 1;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin: 0 8px;
+            overflow: hidden;
+        }
+
+        .diagnosis-score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fb923c, #ef4444);
+        }
+
+        /* YAML CODE PREVIEW */
+        .yaml-box {
+            background: #0f172a;
+            color: #38edf6;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.75rem;
+            padding: 12px;
+            border-radius: 14px;
+            border: 2px solid var(--wood-brown);
+            max-height: 280px;
+            overflow-y: auto;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+
+        /* BOTTOM CASCADE TIMELINE BAR */
+        .timeline-card {
+            background: #ffffff;
+            border: 3px solid var(--wood-brown);
+            border-radius: 24px;
+            padding: 18px 24px;
+            box-shadow: 0 8px 0 var(--wood-brown), 0 12px 20px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timeline-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--wood-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timeline-bars-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            height: 90px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 12px 20px;
+        }
+
+        .timeline-hop-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .hop-bar {
+            width: 100%;
+            max-width: 45px;
+            background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+            border-radius: 8px 8px 0 0;
+            transition: height 0.4s ease;
+            min-height: 4px;
+        }
+
+        .hop-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        /* FOOTER */
+        .app-footer {
+            text-align: center;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            padding: 8px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- HEADER SECTION -->
+    <header class="app-header">
+        <div class="header-title-group">
+            <div class="app-icon">🌳</div>
+            <div class="header-text">
+                <h1>BlastRadius Sim <span class="team-badge">ABB Accelerate 2026</span></h1>
+                <p>A "What-If" Failure & Resilience Simulator for Live Kubernetes Dependency Graphs</p>
+            </div>
+        </div>
+
+        <div class="header-stats">
+            <div class="stat-pill">Pods: <span class="num" id="stat-total-pods">17</span></div>
+            <div class="stat-pill">Vines: <span class="num" id="stat-total-vines">21</span></div>
+            <div class="stat-pill">Critical Path: <span class="num">6</span></div>
+        </div>
+
+        <div class="header-actions">
+            <select class="btn btn-select" id="scenario-selector" onchange="loadScenario(this.value)">
+                <option value="">⚡ Presets Scenarios...</option>
+                <option value="payment">🔥 Payment Gateway Outage</option>
+                <option value="db">💾 Primary DB Deadlock</option>
+                <option value="cdn">🌐 Edge CDN Traffic Spike</option>
+            </select>
+            <button class="btn btn-primary" onclick="autoRemediateAll()">🛡️ Auto-Remediate</button>
+            <button class="btn btn-danger" onclick="resetAll()">🔄 Reset</button>
+        </div>
+    </header>
+
+    <!-- MEOMI HERO ARCHITECTURE CARD (NO OVERLAPPING TEXT) -->
+    <section class="hero-banner">
+        <div class="hero-header-row">
+            <div class="hero-title">
+                <span>🏰</span> Treehouse Engine Architecture & Discovery Flow
+            </div>
+            <span class="team-badge">Team Deshire: Sona Bhatia & Caleb Benfield</span>
+        </div>
+
+        <div class="hero-grid">
+            <div class="arch-card">
+                <div class="arch-icon-box">🐿️</div>
+                <div class="arch-info">
+                    <h4>Discovery & Graph Layer</h4>
+                    <p>Scans active K8s cluster endpoints, pods, and ingress routes to dynamically stitch the DAG vine connections.</p>
+                </div>
+            </div>
+
+            <div class="arch-card">
+                <div class="arch-icon-box">🐧</div>
+                <div class="arch-info">
+                    <h4>Simulation Engine</h4>
+                    <p>Runs graph traversal algorithms (BFS/DFS) to calculate ripple blast radius, cascade hops, and SLA breaches.</p>
+                </div>
+            </div>
+
+            <div class="arch-card">
+                <div class="arch-icon-box">🦉</div>
+                <div class="arch-info">
+                    <h4>Mitigation Recommender</h4>
+                    <p>Suggests real-time circuit breakers, retry budgets, and fallback paths before live deployment.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN WORKSPACE (GRAPH + COMMAND CENTER) -->
+    <div class="workspace-grid">
+
+        <!-- LEFT: KUBERNETES GRAPH VIEWPORT -->
+        <main class="graph-card">
+            <div class="graph-controls-bar">
+                <div class="instruction-tag">
+                    <span>💡</span> Click any pod to trigger a failure. Hold Shift or click multiple pods to stack cascading failures!
+                </div>
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--wood-dark);" id="active-mode-label">
+                    Mode: Live Simulation
+                </div>
+            </div>
+
+            <div class="dag-viewport" id="dag-viewport">
+                <!-- SVG Canvas for Vines -->
+                <svg id="vines-svg-canvas"></svg>
+
+                <!-- Column Headers -->
+                <div class="column-headers">
+                    <div class="col-header-pill">Roots (Edge)</div>
+                    <div class="col-header-pill">Trunk (Gateway)</div>
+                    <div class="col-header-pill">Domain</div>
+                    <div class="col-header-pill">Service Layer</div>
+                    <div class="col-header-pill">Data & Infra</div>
+                    <div class="col-header-pill">Downstream</div>
+                </div>
+
+                <!-- DAG Nodes Grid -->
+                <div class="dag-columns-container">
+                    
+                    <!-- Col 1: Edge -->
+                    <div class="dag-column" id="col-0">
+                        <div class="pod-node" id="node-cdn" onclick="togglePodFail('node-cdn')">
+                            <div class="pod-top-bar"><span class="pod-code">CDN</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">CDN / Edge</div>
+                            <div class="pod-role-sub">Traffic Entry</div>
+                        </div>
+                    </div>
+
+                    <!-- Col 2: Gateway -->
+                    <div class="dag-column" id="col-1">
+                        <div class="pod-node" id="node-gateway" onclick="togglePodFail('node-gateway')">
+                            <div class="pod-top-bar"><span class="pod-code">GW</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">API Gateway</div>
+                            <div class="pod-role-sub">Router</div>
+                        </div>
+                    </div>
+
+                    <!-- Col 3: Domain -->
+                    <div class="dag-column" id="col-2">
+                        <div class="pod-node" id="node-catalog" onclick="togglePodFail('node-catalog')">
+                            <div class="pod-top-bar"><span class="pod-code">CAT</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">Catalog Svc</div>
+                            <div class="pod-role-sub">Products</div>
+                        </div>
+                        <div class="pod-node" id="node-order" onclick="togglePodFail('node-order')">
+                            <div class="pod-top-bar"><span class="pod-code">ORD</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">Order Svc</div>
+                            <div class="pod-role-sub">Checkout</div>
+                        </div>
+                    </div>
+
+                    <!-- Col 4: Service Layer -->
+                    <div class="dag-column" id="col-3">
+                        <div class="pod-node" id="node-user" onclick="togglePodFail('node-user')">
+                            <div class="pod-top-bar"><span class="pod-code">USR</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">User Svc</div>
+                            <div class="pod-role-sub">Profiles</div>
+                        </div>
+                        <div class="pod-node" id="node-payment" onclick="togglePodFail('node-payment')">
+                            <div class="pod-top-bar"><span class="pod-code">PAY</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">Payment Svc</div>
+                            <div class="pod-role-sub">Transactions</div>
+                        </div>
+                        <div class="pod-node" id="node-inventory" onclick="togglePodFail('node-inventory')">
+                            <div class="pod-top-bar"><span class="pod-code">INV</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">Inventory Svc</div>
+                            <div class="pod-role-sub">Stock</div>
+                        </div>
+                    </div>
+
+                    <!-- Col 5: Data & Infra -->
+                    <div class="dag-column" id="col-4">
+                        <div class="pod-node" id="node-auth" onclick="togglePodFail('node-auth')">
+                            <div class="pod-top-bar"><span class="pod-code">AUTH</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">Auth Svc</div>
+                            <div class="pod-role-sub">OAuth Token</div>
+                        </div>
+                        <div class="pod-node" id="node-db" onclick="togglePodFail('node-db')">
+                            <div class="pod-top-bar"><span class="pod-code">DB</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">Primary DB</div>
+                            <div class="pod-role-sub">PostgreSQL</div>
+                        </div>
+                        <div class="pod-node" id="node-cache" onclick="togglePodFail('node-cache')">
+                            <div class="pod-top-bar"><span class="pod-code">REDIS</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">Redis Cache</div>
+                            <div class="pod-role-sub">In-Memory</div>
+                        </div>
+                    </div>
+
+                    <!-- Col 6: Downstream -->
+                    <div class="dag-column" id="col-5">
+                        <div class="pod-node" id="node-email" onclick="togglePodFail('node-email')">
+                            <div class="pod-top-bar"><span class="pod-code">MAIL</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">Email Svc</div>
+                            <div class="pod-role-sub">Notifier</div>
+                        </div>
+                        <div class="pod-node" id="node-analytics" onclick="togglePodFail('node-analytics')">
+                            <div class="pod-top-bar"><span class="pod-code">LOG</span><div class="pod-status-dot"></div></div>
+                            <span class="pod-face">( •̀ᴗ•́ )</span>
+                            <div class="pod-name">Analytics Hub</div>
+                            <div class="pod-role-sub">Metrics</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <!-- RIGHT: COMMAND CENTER PANEL -->
+        <aside class="command-card">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('sim')"> Simulation</button>
+                <button class="tab-btn" onclick="switchTab('diagnose')"> Diagnose</button>
+                <button class="tab-btn" onclick="switchTab('yaml')"> K8s Spec</button>
+                <button class="tab-btn" onclick="switchTab('guide')"> Guide</button>
+            </div>
+
+            <!-- TAB 1: SIMULATION METRICS & MITIGATIONS -->
+            <div class="tab-content active" id="tab-sim">
+                <div class="metrics-chalkboard">
+                    <div class="chalk-header">
+                        <span>PENGUIN OBSERVATORY</span>
+                        <span id="chalk-status">SYSTEM HEALTHY</span>
+                    </div>
+
+                    <div class="metric-row">
+                        <span>Failed Root Nodes:</span>
+                        <div class="failed-badges-wrapper" id="failed-roots-list">
+                            <span style="color:#94a3b8; font-size:0.8rem;">None</span>
+                        </div>
+                    </div>
+
+                    <div class="metric-row">
+                        <span>Pods Impacted:</span>
+                        <span class="metric-val safe" id="val-impacted-count">0 / 11</span>
+                    </div>
+
+                    <div class="metric-row">
+                        <span>Critical SLA Risk:</span>
+                        <span class="metric-val safe" id="val-sla-risk">0%</span>
+                    </div>
+
+                    <div class="metric-row">
+                        <span>Est. Downtime Cost:</span>
+                        <span class="metric-val safe" id="val-cost-min">$0 / min</span>
+                    </div>
+                </div>
+
+                <!-- MITIGATION RECOMMENDER -->
+                <div class="mitigation-box">
+                    <div class="mitigation-title">
+                        <span>🦉</span> Guardian Owl Recommendations
+                    </div>
+                    <div id="mitigation-list-container">
+                        <p style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No failures simulated yet. Everything is quiet in the forest.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 1.5: FIELD DIAGNOSTIC QUESTIONNAIRE -->
+            <div class="tab-content" id="tab-diagnose">
+                <div style="font-size:0.85rem; font-weight:700; color:var(--wood-dark);">
+                    What is the technician seeing?
+                </div>
+                <p style="font-size:0.76rem; color:var(--text-muted); margin-top:-8px;">
+                    Check every symptom that applies. The Penguin Observatory scores each one against the
+                    dependency graph and maps them to the most likely failing pod(s) — no K8s knowledge required.
+                </p>
+
+                <div id="diagnostic-checklist" style="display:flex; flex-direction:column; gap:6px;"></div>
+
+                <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="runDiagnosis()">🔍 Map Scenario</button>
+
+                <div id="diagnosis-result" style="display:none;">
+                    <div class="mitigation-box" style="margin-top:4px;">
+                        <div class="mitigation-title"><span>🐧</span> Diagnosis</div>
+                        <div id="diagnosis-output" style="font-size:0.82rem; line-height:1.5;"></div>
+                        <button class="btn btn-primary" style="width:100%; justify-content:center; margin-top:10px;" onclick="applyDiagnosis()">⚡ Apply to Simulation</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: K8S RESILIENCE MANIFEST GENERATOR -->
+            <div class="tab-content" id="tab-yaml">
+                <div style="font-size:0.85rem; font-weight:700; color:var(--wood-dark);">
+                    🛡️ Auto-Generated K8s Resilience Spec
+                </div>
+                <div class="yaml-box" id="yaml-code-output"># K8s Resilience Mesh Config
+# Select a node or trigger a failure to generate ChaosMesh / Envoy circuit breaker specs.
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: blast-radius-simulation
+spec:
+  action: pod-failure
+  mode: all
+  selector:
+    namespaces:
+      - production</div>
+                <button class="btn btn-primary" style="width:100%; justify-content:center;" onclick="copyYaml()">📋 Copy K8s Manifest</button>
+            </div>
+
+            <!-- TAB 3: NOOB GUIDE -->
+            <div class="tab-content" id="tab-guide">
+                <div style="font-size:0.85rem; line-height:1.45; color:var(--text-main);">
+                    <h4 style="color:var(--wood-dark); margin-bottom:6px;">🐣 How BlastRadius Sim Works</h4>
+                    <p style="margin-bottom:8px;"><strong>1. Dependency Graph:</strong> Pods talk to each other across columns (Edge → Gateway → Services → DB).</p>
+                    <p style="margin-bottom:8px;"><strong>2. Cascading Failure:</strong> When a pod crashes, its dependent caller services lose connection, expanding the blast radius.</p>
+                    <p style="margin-bottom:8px;"><strong>3. One-Click Mitigation:</strong> Apply circuit breakers or retry fallbacks to isolate broken nodes and keep critical SLA paths online!</p>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- BOTTOM CASCADE TIMELINE -->
+    <section class="timeline-card">
+        <div class="timeline-header">
+            <div class="timeline-title">
+                <span>📈</span> Cascade Propagation Scope (Impacted Pods by Hop Distance)
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button class="btn btn-primary" onclick="playCascadeAnimation()">▶️ Play Cascade</button>
+            </div>
+        </div>
+
+        <div class="timeline-bars-container">
+            <div class="timeline-hop-col">
+                <div class="hop-bar" id="hop-bar-0" style="height: 4px;"></div>
+                <span class="hop-label">Hop 0 (Root)</span>
+            </div>
+            <div class="timeline-hop-col">
+                <div class="hop-bar" id="hop-bar-1" style="height: 4px;"></div>
+                <span class="hop-label">Hop 1</span>
+            </div>
+            <div class="timeline-hop-col">
+                <div class="hop-bar" id="hop-bar-2" style="height: 4px;"></div>
+                <span class="hop-label">Hop 2</span>
+            </div>
+            <div class="timeline-hop-col">
+                <div class="hop-bar" id="hop-bar-3" style="height: 4px;"></div>
+                <span class="hop-label">Hop 3+</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+        BlastRadius Sim — Deshire (Sona Bhatia, Caleb Benfield) · ABB Accelerate 2026 Hackathon Submission
+    </footer>
+
+</div>
+
+<!-- EMBEDDED JAVASCRIPT ENGINE -->
+<script>
+    // DEPENDENCY GRAPH (Directed Adjacency List)
+    const graphEdges = {
+        'node-cdn': ['node-gateway'],
+        'node-gateway': ['node-catalog', 'node-order'],
+        'node-catalog': ['node-inventory', 'node-cache'],
+        'node-order': ['node-user', 'node-payment', 'node-inventory'],
+        'node-user': ['node-auth', 'node-db'],
+        'node-payment': ['node-db', 'node-email'],
+        'node-inventory': ['node-db'],
+        'node-auth': ['node-db'],
+        'node-db': ['node-analytics'],
+        'node-cache': [],
+        'node-email': [],
+        'node-analytics': []
+    };
+
+    const podNames = {
+        'node-cdn': 'CDN / Edge',
+        'node-gateway': 'API Gateway',
+        'node-catalog': 'Catalog Service',
+        'node-order': 'Order Service',
+        'node-user': 'User Service',
+        'node-payment': 'Payment Service',
+        'node-inventory': 'Inventory Service',
+        'node-auth': 'Auth Service',
+        'node-db': 'Primary DB',
+        'node-cache': 'Redis Cache',
+        'node-email': 'Email Service',
+        'node-analytics': 'Analytics Hub'
+    };
+
+    let activeFailedRoots = new Set();
+    let appliedMitigations = new Set();
+
+    // FIELD DIAGNOSTIC QUESTIONNAIRE
+    // Each symptom a technician can observe maps to points against the pod(s)
+    // most likely to be the true root cause. This is a transparent, rule-based
+    // scoring model (not a black box) — the "why" for every mapping is right
+    // here and shown to the technician in the result.
+    const symptomLibrary = [
+        { id: 'checkout-fail', label: "Customers can't complete checkout or payments are declining", weights: { 'node-payment': 3, 'node-order': 1 } },
+        { id: 'login-fail', label: "Users can't log in, or get logged out unexpectedly", weights: { 'node-auth': 3, 'node-user': 1 } },
+        { id: 'total-outage', label: "The site won't load at all for anyone", weights: { 'node-cdn': 3, 'node-gateway': 2 } },
+        { id: 'slow-not-down', label: "Pages are slow to load, but the site is technically up", weights: { 'node-cache': 2, 'node-db': 1 } },
+        { id: 'catalog-wrong', label: "Product pages show missing, wrong, or outdated info", weights: { 'node-catalog': 3, 'node-inventory': 1 } },
+        { id: 'no-emails', label: "Order confirmation / receipt emails never arrive", weights: { 'node-email': 3 } },
+        { id: 'stale-analytics', label: "Internal dashboards / reports look stale or frozen", weights: { 'node-analytics': 2, 'node-db': 1 } },
+        { id: 'inventory-wrong', label: "Inventory counts don't match what's actually in stock", weights: { 'node-inventory': 3, 'node-db': 1 } },
+    ];
+
+    let pendingDiagnosisRoots = [];
+
+    function renderDiagnosticChecklist() {
+        const container = document.getElementById('diagnostic-checklist');
+        if (!container) return;
+        container.innerHTML = symptomLibrary.map(s => `
+            <label class="symptom-row">
+                <input type="checkbox" value="${s.id}">
+                <span>${s.label}</span>
+            </label>
+        `).join('');
+    }
+
+    function runDiagnosis() {
+        const checked = Array.from(document.querySelectorAll('#diagnostic-checklist input:checked')).map(el => el.value);
+        const resultBox = document.getElementById('diagnosis-result');
+        const output = document.getElementById('diagnosis-output');
+
+        if (checked.length === 0) {
+            resultBox.style.display = 'block';
+            output.innerHTML = `<p style="color:var(--text-muted); font-style:italic;">Check at least one symptom to map a scenario.</p>`;
+            pendingDiagnosisRoots = [];
+            return;
+        }
+
+        // Tally weighted scores across every pod mentioned by a checked symptom.
+        const scores = {};
+        checked.forEach(id => {
+            const symptom = symptomLibrary.find(s => s.id === id);
+            Object.entries(symptom.weights).forEach(([podId, pts]) => {
+                scores[podId] = (scores[podId] || 0) + pts;
+            });
+        });
+
+        const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+        const topScore = ranked[0][1];
+        // Anything within striking distance of the top score is treated as a
+        // co-occurring root cause, so multi-symptom scenarios can map to more
+        // than one failing pod (matching how you can stack real failures).
+        pendingDiagnosisRoots = ranked.filter(([, pts]) => pts >= topScore * 0.6).map(([id]) => id);
+
+        const maxForBar = ranked[0][1];
+        output.innerHTML = `
+            <p style="margin-bottom:8px;">Based on ${checked.length} symptom${checked.length > 1 ? 's' : ''}, the most likely root cause${pendingDiagnosisRoots.length > 1 ? 's are' : ' is'}:</p>
+            ${ranked.map(([podId, pts]) => `
+                <div class="diagnosis-pod-line">
+                    <strong style="font-size:0.8rem; ${pendingDiagnosisRoots.includes(podId) ? 'color:#b91c1c;' : 'color:var(--text-muted);'}">${podNames[podId]}</strong>
+                    <div class="diagnosis-score-bar"><div class="diagnosis-score-fill" style="width:${Math.round((pts / maxForBar) * 100)}%"></div></div>
+                    <span style="font-size:0.72rem; color:var(--text-muted);">${pts} pt${pts > 1 ? 's' : ''}</span>
+                </div>
+            `).join('')}
+        `;
+        resultBox.style.display = 'block';
+    }
+
+    function applyDiagnosis() {
+        if (pendingDiagnosisRoots.length === 0) return;
+        activeFailedRoots = new Set(pendingDiagnosisRoots);
+        appliedMitigations.clear();
+        document.getElementById('scenario-selector').value = '';
+        evaluateSimulation();
+        switchTabById('sim');
+    }
+
+    // switchTab() (below) reads the click event to know which button to
+    // highlight; this variant lets code call it programmatically instead.
+    function switchTabById(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick') === `switchTab('${tabId}')`);
+        if (btn) btn.classList.add('active');
+        const content = document.getElementById(`tab-${tabId}`);
+        if (content) content.classList.add('active');
+    }
+
+    window.addEventListener('load', () => {
+        drawGraphVines();
+        renderDiagnosticChecklist();
+        window.addEventListener('resize', drawGraphVines);
+    });
+
+    // DRAW SVG VINES BETWEEN NODES WITH SMOOTH BEZIER CURVES
+    function drawGraphVines() {
+        const svg = document.getElementById('vines-svg-canvas');
+        if (!svg) return;
+        svg.innerHTML = '';
+
+        const viewportRect = document.getElementById('dag-viewport').getBoundingClientRect();
+
+        Object.keys(graphEdges).forEach(sourceId => {
+            const sourceElem = document.getElementById(sourceId);
+            if (!sourceElem) return;
+
+            graphEdges[sourceId].forEach(targetId => {
+                const targetElem = document.getElementById(targetId);
+                if (!targetElem) return;
+
+                const edgeKey = `${sourceId}->${targetId}`;
+                const isBypassed = appliedMitigations.has(edgeKey);
+
+                const srcRect = sourceElem.getBoundingClientRect();
+                const tgtRect = targetElem.getBoundingClientRect();
+
+                // Compute relative coordinates inside viewport
+                const x1 = srcRect.right - viewportRect.left;
+                const y1 = srcRect.top + srcRect.height / 2 - viewportRect.top;
+                const x2 = tgtRect.left - viewportRect.left;
+                const y2 = tgtRect.top + tgtRect.height / 2 - viewportRect.top;
+
+                // Curved path
+                const dx = (x2 - x1) * 0.45;
+                const pathData = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('fill', 'none');
+                
+                if (isBypassed) {
+                    path.setAttribute('stroke', '#22c55e');
+                    path.setAttribute('stroke-width', '2.5');
+                    path.setAttribute('stroke-dasharray', '4,4');
+                } else {
+                    path.setAttribute('stroke', '#b45309');
+                    path.setAttribute('stroke-width', '3');
+                    path.setAttribute('opacity', '0.5');
+                }
+
+                svg.appendChild(path);
+            });
+        });
+    }
+
+    // SIMULATE FAILURE BFS TRAVERSAL
+    function togglePodFail(nodeId) {
+        if (activeFailedRoots.has(nodeId)) {
+            activeFailedRoots.delete(nodeId);
+        } else {
+            activeFailedRoots.add(nodeId);
+        }
+        evaluateSimulation();
+    }
+
+    // Shared BFS traversal — the single source of truth for "what's affected
+    // right now". evaluateSimulation(), playCascadeAnimation(), and the
+    // mitigation recommender all call this instead of keeping their own
+    // separate copies of the logic (that drift was the root of both bugs).
+    function computeBlastRadius() {
+        const affectedPods = new Set();
+        const hopDistances = {};
+
+        activeFailedRoots.forEach(rootId => {
+            const queue = [{ id: rootId, hop: 0 }];
+
+            while (queue.length > 0) {
+                const { id, hop } = queue.shift();
+
+                if (!affectedPods.has(id)) {
+                    affectedPods.add(id);
+                    hopDistances[id] = Math.min(hopDistances[id] || Infinity, hop);
+
+                    // Check neighbors
+                    const neighbors = graphEdges[id] || [];
+                    neighbors.forEach(neighborId => {
+                        const edgeKey = `${id}->${neighborId}`;
+                        // If mitigation applied, circuit breaker isolates failure propagation!
+                        if (!appliedMitigations.has(edgeKey)) {
+                            queue.push({ id: neighborId, hop: hop + 1 });
+                        }
+                    });
+                }
+            }
+        });
+
+        return { affectedPods, hopDistances };
+    }
+
+    function evaluateSimulation() {
+        const { affectedPods, hopDistances } = computeBlastRadius();
+
+        // Update visuals on Pods
+        document.querySelectorAll('.pod-node').forEach(elem => {
+            const id = elem.id;
+            elem.classList.remove('failed-root', 'blast-affected', 'remediated');
+            const faceElem = elem.querySelector('.pod-face');
+
+            if (activeFailedRoots.has(id)) {
+                elem.classList.add('failed-root');
+                if (faceElem) faceElem.innerText = '( >_< )';
+            } else if (affectedPods.has(id)) {
+                elem.classList.add('blast-affected');
+                if (faceElem) faceElem.innerText = '( ; - ; )';
+            } else {
+                if (faceElem) faceElem.innerText = '( •̀ᴗ•́ )';
+            }
+        });
+
+        updateMetricsChalkboard(affectedPods);
+        updateMitigationList(affectedPods);
+        updateCascadeTimeline(hopDistances);
+        generateYamlSpec();
+        drawGraphVines();
+    }
+
+    // UPDATE METRICS
+    function updateMetricsChalkboard(affectedPods) {
+        const totalPods = Object.keys(podNames).length;
+        const count = affectedPods.size;
+        const percent = Math.round((count / totalPods) * 100);
+        const cost = count * 1200;
+
+        const countElem = document.getElementById('val-impacted-count');
+        const riskElem = document.getElementById('val-sla-risk');
+        const costElem = document.getElementById('val-cost-min');
+        const chalkStatus = document.getElementById('chalk-status');
+
+        countElem.innerText = `${count} / ${totalPods}`;
+        riskElem.innerText = `${percent}%`;
+        costElem.innerText = `$${cost.toLocaleString()} / min`;
+
+        if (count > 5) {
+            countElem.className = 'metric-val high';
+            riskElem.className = 'metric-val high';
+            costElem.className = 'metric-val high';
+            chalkStatus.innerText = 'CRITICAL SLA BREACH';
+            chalkStatus.style.color = '#f87171';
+        } else if (count > 0) {
+            countElem.className = 'metric-val med';
+            riskElem.className = 'metric-val med';
+            costElem.className = 'metric-val med';
+            chalkStatus.innerText = 'ELEVATED RISK';
+            chalkStatus.style.color = '#fb923c';
+        } else {
+            countElem.className = 'metric-val safe';
+            riskElem.className = 'metric-val safe';
+            costElem.className = 'metric-val safe';
+            chalkStatus.innerText = 'SYSTEM HEALTHY';
+            chalkStatus.style.color = '#4ade80';
+        }
+
+        // Failed roots badges
+        const rootsContainer = document.getElementById('failed-roots-list');
+        rootsContainer.innerHTML = '';
+        if (activeFailedRoots.size === 0) {
+            rootsContainer.innerHTML = '<span style="color:#94a3b8; font-size:0.8rem;">None</span>';
+        } else {
+            activeFailedRoots.forEach(rId => {
+                const badge = document.createElement('span');
+                badge.className = 'failed-pill';
+                badge.innerText = podNames[rId] || rId;
+                rootsContainer.appendChild(badge);
+            });
+        }
+    }
+
+    // Build the list of circuit-breaker recommendations for whatever is
+    // *actually* cascading right now — every edge whose source pod and
+    // target pod are both currently affected is a live propagation path,
+    // so it's a real candidate for isolation. This replaces a fixed list
+    // of 3 hardcoded pairs, which is why Auto-Remediate used to apply the
+    // same 3 edges no matter what you'd actually failed.
+    function generateRecommendations(affectedPods) {
+        const recommendations = [];
+        Object.keys(graphEdges).forEach(sourceId => {
+            if (!affectedPods.has(sourceId)) return;
+            graphEdges[sourceId].forEach(targetId => {
+                if (!affectedPods.has(targetId)) return;
+                const edgeKey = `${sourceId}->${targetId}`;
+                recommendations.push({
+                    edge: edgeKey,
+                    title: `Add Circuit Breaker: ${podNames[sourceId]} → ${podNames[targetId]}`,
+                    desc: `Stops a ${podNames[sourceId]} failure from cascading into ${podNames[targetId]}.`
+                });
+            });
+        });
+        return recommendations;
+    }
+
+    // UPDATE GUARDIAN OWL MITIGATIONS
+    function updateMitigationList(affectedPods) {
+        const container = document.getElementById('mitigation-list-container');
+        container.innerHTML = '';
+
+        if (affectedPods.size === 0) {
+            container.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted); font-style:italic;">No failures simulated yet. Everything is quiet in the forest.</p>';
+            return;
+        }
+
+        const recommendations = generateRecommendations(affectedPods);
+
+        if (recommendations.length === 0) {
+            container.innerHTML = '<p style="font-size:0.8rem; color:#166534; font-weight:700;"> Low risk blast radius! No critical circuit breakers needed.</p>';
+            return;
+        }
+
+        recommendations.forEach(rec => {
+            const isApplied = appliedMitigations.has(rec.edge);
+            const div = document.createElement('div');
+            div.className = 'mitigation-item';
+            div.innerHTML = `
+                <div class="mitigation-text">
+                    <p>${rec.title}</p>
+                    <span>${rec.desc}</span>
+                </div>
+                <button class="btn-apply ${isApplied ? 'applied' : ''}" onclick="toggleMitigation('${rec.edge}')">
+                    ${isApplied ? 'Applied ✓' : 'Apply'}
+                </button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function toggleMitigation(edgeKey) {
+        if (appliedMitigations.has(edgeKey)) {
+            appliedMitigations.delete(edgeKey);
+        } else {
+            appliedMitigations.add(edgeKey);
+        }
+        evaluateSimulation();
+    }
+
+    function autoRemediateAll() {
+        // Recompute what's actually cascading right now, and break every
+        // edge that's part of that live cascade — not a fixed 3-edge list.
+        const { affectedPods } = computeBlastRadius();
+        if (affectedPods.size === 0) return;
+        generateRecommendations(affectedPods).forEach(rec => appliedMitigations.add(rec.edge));
+        evaluateSimulation();
+    }
+
+    // UPDATE CASCADE TIMELINE
+    function updateCascadeTimeline(hopDistances) {
+        const counts = [0, 0, 0, 0]; // hop 0, 1, 2, 3+
+        Object.values(hopDistances).forEach(hop => {
+            if (hop >= 3) counts[3]++;
+            else counts[hop]++;
+        });
+
+        for (let i = 0; i < 4; i++) {
+            const bar = document.getElementById(`hop-bar-${i}`);
+            if (bar) {
+                const heightPx = Math.max(4, counts[i] * 18);
+                bar.style.height = `${heightPx}px`;
+            }
+        }
+    }
+
+    // SCENARIOS PRESETS
+    function loadScenario(type) {
+        resetAll();
+        if (type === 'payment') {
+            activeFailedRoots.add('node-payment');
+        } else if (type === 'db') {
+            activeFailedRoots.add('node-db');
+        } else if (type === 'cdn') {
+            activeFailedRoots.add('node-cdn');
+        }
+        evaluateSimulation();
+    }
+
+    function resetAll() {
+        activeFailedRoots.clear();
+        appliedMitigations.clear();
+        document.getElementById('scenario-selector').value = '';
+        evaluateSimulation();
+    }
+
+    // SWITCH TABS
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+        event.target.classList.add('active');
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+
+    // GENERATE K8S MANIFEST
+    function generateYamlSpec() {
+        const yamlBox = document.getElementById('yaml-code-output');
+        if (!yamlBox) return;
+
+        if (activeFailedRoots.size === 0) {
+            yamlBox.innerText = `# K8s Resilience Mesh Config\n# Select a node or trigger a failure to generate specs.\napiVersion: chaos-mesh.org/v1alpha1\nkind: PodChaos\nmetadata:\n  name: blast-radius-simulation\nspec:\n  action: pod-failure\n  mode: all`;
+            return;
+        }
+
+        const failedList = Array.from(activeFailedRoots).map(id => podNames[id]).join(', ');
+        yamlBox.innerText = `apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: simulate-${Array.from(activeFailedRoots)[0]}-outage
+  namespace: production
+spec:
+  action: pod-failure
+  mode: fixed
+  value: '${activeFailedRoots.size}'
+  selector:
+    labelSelectors:
+      'app.kubernetes.io/name': '${failedList}'
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: circuit-breaker-resilience
+spec:
+  host: "*.production.svc.cluster.local"
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 10s
+      baseEjectionTime: 30s`;
+    }
+
+    function copyYaml() {
+        const txt = document.getElementById('yaml-code-output').innerText;
+        navigator.clipboard.writeText(txt);
+        alert('📋 K8s Resilience Manifest copied to clipboard!');
+    }
+
+    let cascadeTimers = [];
+
+    function playCascadeAnimation() {
+        if (activeFailedRoots.size === 0) {
+            alert('Please click at least one pod to trigger a failure cascade before playing animation!');
+            return;
+        }
+
+        // Cancel any cascade already in flight so replays don't stack up.
+        cascadeTimers.forEach(clearTimeout);
+        cascadeTimers = [];
+        document.querySelectorAll('.pod-node').forEach(el => el.classList.remove('cascade-flash'));
+        document.querySelectorAll('.hop-bar').forEach(el => el.classList.remove('hop-active'));
+
+        const { hopDistances } = computeBlastRadius();
+        const stepMs = 550;
+
+        Object.entries(hopDistances).forEach(([id, hop]) => {
+            const t1 = setTimeout(() => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.add('cascade-flash');
+                const t2 = setTimeout(() => el.classList.remove('cascade-flash'), 550);
+                cascadeTimers.push(t2);
+            }, hop * stepMs);
+            cascadeTimers.push(t1);
+
+            // light up the matching hop-bar in the timeline as the wave passes it
+            const barIndex = Math.min(hop, 3);
+            const bar = document.getElementById(`hop-bar-${barIndex}`);
+            if (bar) {
+                const t3 = setTimeout(() => bar.classList.add('hop-active'), hop * stepMs);
+                const t4 = setTimeout(() => bar.classList.remove('hop-active'), hop * stepMs + 550);
+                cascadeTimers.push(t3, t4);
+            }
+        });
+    }
+</script>
+</body>
+</html>
